@@ -3,10 +3,7 @@ from audio_separator.separator import Separator
 import logging
 import threading
 import sys
-import os
 from pathlib import Path
-import time
-import io
 import re
 
 # Custom Logging Handler to redirect logs to Flet GUI
@@ -33,7 +30,7 @@ class StderrTqdmHandler:
         # Pass through to original stderr
         try:
             self.original_stderr.write(message)
-        except Exception:
+        except (OSError, ValueError):
             pass
 
         self.buffer += message
@@ -54,7 +51,7 @@ class StderrTqdmHandler:
     def flush(self):
         try:
             self.original_stderr.flush()
-        except Exception:
+        except (OSError, ValueError):
             pass
 
 class AudioSeparatorApp:
@@ -286,14 +283,14 @@ class AudioSeparatorApp:
                     if new_path.exists():
                         try:
                             new_path.unlink()
-                        except Exception as e:
+                        except (OSError, ValueError) as e:
                             self.append_log(f"Error deleting existing {new_name}: {e}")
 
                     try:
                         original_path.rename(new_path)
                         renamed_files.append(new_name)
                         self.append_log(f"Renamed {file} -> {new_name}")
-                    except Exception as e:
+                    except (OSError, ValueError) as e:
                         self.append_log(f"Error renaming {file}: {e}")
                 else:
                     self.append_log(f"Could not match stem for {file}, keeping original name.")
