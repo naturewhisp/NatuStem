@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.env
+
+# Modelli AI (Demucs scarica modelli pesanti, non committarli!)
+/models/
+/.cache/
+
+# File Audio (Non intasare GitHub)
+input/*
+output/*
+*.mp3
+*.wav
+*.flac
+
+# IDE settings
+.vscode/
+.idea/
