@@ -81,7 +81,7 @@ class AudioSeparatorApp:
         self.file_path_text = ft.Text(value="No file selected", size=16, color=ft.colors.GREY_400)
         self.select_file_btn = ft.ElevatedButton(
             "Select Audio File",
-            icon="audio_file",
+            icon="audio_file", # Corrected from ft.icons.AUDIO_FILE
             on_click=lambda _: self.pick_files_dialog.pick_files(
                 allow_multiple=False,
                 allowed_extensions=["mp3", "wav", "flac"]
@@ -102,7 +102,7 @@ class AudioSeparatorApp:
 
         self.separate_btn = ft.ElevatedButton(
             "Separate Stems",
-            icon="music_note",
+            icon="music_note", # Corrected from ft.icons.Music_NOTE
             on_click=self.start_separation,
             disabled=True
         )
@@ -235,20 +235,61 @@ class AudioSeparatorApp:
             separator.load_model(model_filename=model_name)
             self.append_log("Model loaded.")
 
-            # Custom output names mapping
-            custom_names = {
-                "vocals": "vocal",
-                "drums": "drums",
-                "bass": "bass",
-                "other": "other"
+            # Separate (removed invalid custom_output_names arg)
+            self.append_log(f"Separating {input_path.name}...")
+            output_files = separator.separate(str(input_path))
+
+            self.append_log(f"Separation complete! Renaming files...")
+
+            # Post-processing rename logic
+            # Expected outputs from htdemucs usually follow pattern:
+            # {input_filename}_(Vocals)_{model_name}.wav
+            # We want: vocal.wav, bass.wav, drums.wav, other.wav
+
+            renamed_files = []
+
+            # Mapping of keyword in filename -> desired filename
+            # Note: htdemucs output names can vary, but usually contain the stem name in parens or appended
+            rename_map = {
+                "Vocals": "vocal.wav",
+                "Drums": "drums.wav",
+                "Bass": "bass.wav",
+                "Other": "other.wav"
             }
 
-            # Separate
-            self.append_log(f"Separating {input_path.name}...")
-            output_files = separator.separate(str(input_path), custom_output_names=custom_names)
+            for file in output_files:
+                original_path = output_dir / file
+                if not original_path.exists():
+                    self.append_log(f"Warning: Expected file {file} not found.")
+                    continue
 
-            self.append_log(f"Separation complete!")
-            self.append_log(f"Generated files: {output_files}")
+                new_name = None
+                for keyword, target in rename_map.items():
+                    # Check if keyword is in filename (case-insensitive check might be safer but usually it's Capitalized)
+                    if f"({keyword})" in file or f"_{keyword}_" in file or keyword in file:
+                         new_name = target
+                         break
+
+                if new_name:
+                    new_path = output_dir / new_name
+                    # If target exists, overwrite or skip? Overwrite seems standard for "processing this file"
+                    if new_path.exists():
+                        try:
+                            new_path.unlink()
+                        except Exception as e:
+                            self.append_log(f"Error deleting existing {new_name}: {e}")
+
+                    try:
+                        original_path.rename(new_path)
+                        renamed_files.append(new_name)
+                        self.append_log(f"Renamed {file} -> {new_name}")
+                    except Exception as e:
+                        self.append_log(f"Error renaming {file}: {e}")
+                else:
+                    self.append_log(f"Could not match stem for {file}, keeping original name.")
+                    renamed_files.append(file)
+
+            self.append_log(f"Generated files: {renamed_files}")
 
             # Final status update needs to happen on main thread via update_status or setting value
             self.update_status(f"Success! Output saved to {output_dir}")
