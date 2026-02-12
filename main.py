@@ -147,6 +147,16 @@ class AudioSeparatorApp:
         self.stderr_handler = StderrTqdmHandler(self.update_status)
         sys.stderr = self.stderr_handler
 
+        # Restore stderr on window destroy
+        # Note: page.on_close is available in newer flet versions, or window_destroy on desktop
+        page.window.on_event = self.on_window_event
+
+    def on_window_event(self, e):
+        if e.data == "close":
+            if self.stderr_handler and hasattr(self.stderr_handler, 'original_stderr'):
+                sys.stderr = self.stderr_handler.original_stderr
+            self.page.window.destroy()
+
     def setup_logging(self):
         # Create custom handler
         self.log_handler = GuiLogHandler(self.append_log)
