@@ -266,7 +266,9 @@ class AudioSeparatorApp:
                 "Vocals": "vocal.wav",
                 "Drums": "drums.wav",
                 "Bass": "bass.wav",
-                "Other": "other.wav"
+                "Other": "other.wav",
+                "Guitar": "guitar.wav",
+                "Piano": "piano.wav"
             }
 
             for file in output_files:
