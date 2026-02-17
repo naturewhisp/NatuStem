@@ -89,12 +89,44 @@ class AudioSeparatorApp:
                 ft.dropdown.Option("htdemucs_6s.yaml"),
                 ft.dropdown.Option("hdemucs_mmi.yaml"),
             ],
-            value="htdemucs_ft.yaml"
+            value="htdemucs_ft.yaml",
+            on_select=self.on_model_change
         )
+
+        self.model_descriptions = {
+            "htdemucs_ft.yaml": "Fine-tuned Hybrid Transformer. Best overall quality (4 stems: Vocals, Drums, Bass, Other).",
+            "htdemucs.yaml": "Standard Hybrid Transformer. Good balance of speed and quality (4 stems).",
+            "htdemucs_6s.yaml": "6-Stem Hybrid Transformer. Adds Guitar and Piano separation.",
+            "hdemucs_mmi.yaml": "Hybrid Demucs v3. Older architecture, solid performance."
+        }
+
+        self.model_description_text = ft.Text(
+           value=self.model_descriptions["htdemucs_ft.yaml"],
+           size=12,
+           italic=True,
+           color=ft.Colors.GREY_500
+        )
+
+        # Shifts slider
+        self.shifts_value_text = ft.Text(value="2", size=14, width=30)
+        self.shifts_slider = ft.Slider(
+            min=0, max=20, divisions=20, value=2, label="{value}",
+            on_change=self.on_shifts_change, expand=True
+        )
+
+        # Overlap slider
+        self.overlap_value_text = ft.Text(value="0.25", size=14, width=40)
+        self.overlap_slider = ft.Slider(
+            min=0.0, max=0.99, divisions=None, value=0.25, label="{value}",
+            on_change=self.on_overlap_change, expand=True
+        )
+
+        self.shifts_description = ft.Text("Higher = better quality but slower", size=12, italic=True, color=ft.Colors.GREY_500)
+        self.overlap_description = ft.Text("Higher = smoother transitions but slower", size=12, italic=True, color=ft.Colors.GREY_500)
 
         self.separate_btn = ft.Button(
             "Separate Stems",
-            icon="music_note", # Corrected from ft.icons.Music_NOTE
+            icon="music_note",
             on_click=self.start_separation,
             disabled=True
         )
@@ -119,7 +151,18 @@ class AudioSeparatorApp:
                 controls=[
                     ft.Text("Audio Stem Separator", size=30, weight=ft.FontWeight.BOLD),
                     ft.Row([self.select_file_btn, self.file_path_text], alignment=ft.MainAxisAlignment.START),
-                    ft.Row([self.model_dropdown], alignment=ft.MainAxisAlignment.START),
+                    ft.Column([
+                        ft.Row([self.model_dropdown], alignment=ft.MainAxisAlignment.START),
+                        ft.Container(content=self.model_description_text, padding=ft.padding.only(left=10))
+                    ], spacing=0),
+                    ft.Column([
+                        ft.Row([ft.Text("Shifts:", size=14, width=70), self.shifts_slider, self.shifts_value_text], vertical_alignment=ft.CrossAxisAlignment.CENTER),
+                        ft.Container(content=self.shifts_description, padding=ft.padding.only(left=80)),
+                    ], spacing=0),
+                    ft.Column([
+                        ft.Row([ft.Text("Overlap:", size=14, width=70), self.overlap_slider, self.overlap_value_text], vertical_alignment=ft.CrossAxisAlignment.CENTER),
+                        ft.Container(content=self.overlap_description, padding=ft.padding.only(left=80)),
+                    ], spacing=0),
                     ft.Row([self.separate_btn], alignment=ft.MainAxisAlignment.START),
                     self.status_text,
                     self.progress_bar,
@@ -169,6 +212,20 @@ class AudioSeparatorApp:
         if not any(isinstance(h, GuiLogHandler) for h in logger.handlers):
             logger.addHandler(self.log_handler)
 
+    def on_shifts_change(self, e):
+        self.shifts_value_text.value = str(int(e.control.value))
+        self.page.update()
+
+    def on_overlap_change(self, e):
+        self.overlap_value_text.value = f"{e.control.value:.2f}"
+        self.page.update()
+
+    def on_model_change(self, e):
+        selected_model = self.model_dropdown.value
+        if selected_model in self.model_descriptions:
+            self.model_description_text.value = self.model_descriptions[selected_model]
+            self.page.update()
+
     async def pick_files_click(self, e):
         files = await self.pick_files_dialog.pick_files(
             allow_multiple=False,
@@ -209,6 +266,8 @@ class AudioSeparatorApp:
         self.separate_btn.disabled = True
         self.select_file_btn.disabled = True
         self.model_dropdown.disabled = True
+        self.shifts_slider.disabled = True
+        self.overlap_slider.disabled = True
         self.progress_bar.visible = True
         self.status_text.value = "Starting separation..."
         self.log_output.value = "" # Clear logs
@@ -236,10 +295,20 @@ class AudioSeparatorApp:
             # Initialize Separator
             self.append_log("Initializing Separator...")
             # We pass output_dir to Separator so it saves files there
+            shifts_val = int(self.shifts_slider.value)
+            overlap_val = round(self.overlap_slider.value, 2)
+            self.append_log(f"Shifts: {shifts_val}, Overlap: {overlap_val}")
+
             separator = Separator(
                 log_level=logging.INFO,
                 output_dir=str(output_dir),
-                output_format="WAV"
+                output_format="WAV",
+                demucs_params={
+                    "segment_size": "Default",
+                    "shifts": shifts_val,
+                    "overlap": overlap_val,
+                    "segments_enabled": True
+                }
             )
 
             # Load Model
@@ -317,6 +386,8 @@ class AudioSeparatorApp:
             self.separate_btn.disabled = False
             self.select_file_btn.disabled = False
             self.model_dropdown.disabled = False
+            self.shifts_slider.disabled = False
+            self.overlap_slider.disabled = False
             self.progress_bar.visible = False
             self.page.update()
 
