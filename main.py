@@ -72,17 +72,14 @@ class AudioSeparatorApp:
         page.scroll = ft.ScrollMode.AUTO
 
         # UI Components
-        self.pick_files_dialog = ft.FilePicker(on_result=self.pick_files_result)
+        self.pick_files_dialog = ft.FilePicker()
         page.overlay.append(self.pick_files_dialog)
 
         self.file_path_text = ft.Text(value="No file selected", size=16, color=ft.colors.GREY_400)
         self.select_file_btn = ft.ElevatedButton(
             "Select Audio File",
             icon="audio_file", # Corrected from ft.icons.AUDIO_FILE
-            on_click=lambda _: self.pick_files_dialog.pick_files(
-                allow_multiple=False,
-                allowed_extensions=["mp3", "wav", "flac"]
-            )
+            on_click=self.pick_files_click
         )
 
         self.model_dropdown = ft.Dropdown(
@@ -172,9 +169,17 @@ class AudioSeparatorApp:
         if not any(isinstance(h, GuiLogHandler) for h in logger.handlers):
             logger.addHandler(self.log_handler)
 
-    def pick_files_result(self, e):
-        if e.files:
-            file_path = e.files[0].path
+    async def pick_files_click(self, e):
+        files = await self.pick_files_dialog.pick_files(
+            allow_multiple=False,
+            allowed_extensions=["mp3", "wav", "flac"],
+            file_type=ft.FilePickerFileType.CUSTOM
+        )
+        self.pick_files_result(files)
+
+    def pick_files_result(self, files):
+        if files:
+            file_path = files[0].path
             self.audio_file_path = file_path
             self.file_path_text.value = file_path
             self.file_path_text.color = ft.colors.WHITE
