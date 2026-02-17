@@ -74,7 +74,7 @@ class AudioSeparatorApp:
         # UI Components
         self.pick_files_dialog = ft.FilePicker()
         self.file_path_text = ft.Text(value="No file selected", size=16, color=ft.Colors.GREY_400)
-        self.select_file_btn = ft.ElevatedButton(
+        self.select_file_btn = ft.Button(
             "Select Audio File",
             icon="audio_file", # Corrected from ft.icons.AUDIO_FILE
             on_click=self.pick_files_click
@@ -92,7 +92,7 @@ class AudioSeparatorApp:
             value="htdemucs_ft.yaml"
         )
 
-        self.separate_btn = ft.ElevatedButton(
+        self.separate_btn = ft.Button(
             "Separate Stems",
             icon="music_note", # Corrected from ft.icons.Music_NOTE
             on_click=self.start_separation,
