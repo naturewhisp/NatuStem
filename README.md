@@ -13,7 +13,8 @@ An application to separate audio tracks into isolated stems (vocals, drums, bass
 ## Prerequisites
 
 ### 1. Python
-Ensure you have Python 3.9 or higher installed.
+Ensure you have Python 3.10 - 3.12 installed.
+> **Note:** Python 3.13 and newer are currently not supported due to dependency incompatibilities (specifically `diffq` / `diffq-fixed` build errors).
 
 ### 2. FFmpeg (Required)
 This application requires FFmpeg to process audio files.
@@ -54,6 +55,11 @@ python main.py
 5. Wait for the process to complete. The separated files will be saved in a new folder named after the input file, located in the same directory.
 
 ## Troubleshooting
+
+- **"Failed to build 'diffq-fixed'" Error**:
+  - This error typically occurs on Windows when using Python versions newer than 3.12 (e.g., Python 3.13, 3.14) or when C++ build tools are missing.
+  - **Solution 1 (Recommended)**: Uninstall your current Python version and install **Python 3.12** from [python.org](https://www.python.org/downloads/).
+  - **Solution 2**: If you are already on Python 3.10-3.12 and still see this error, you likely need to install the **Microsoft Visual C++ 14.0 or greater**. Download "Visual Studio Build Tools" and install the "Desktop development with C++" workload.
 
 - **"Model file not found"**: The application attempts to download models automatically. Ensure you have an active internet connection on the first run.
 - **Slow Processing**: Separation is computationally intensive. CPU processing can be slow. Consider using GPU if available.
