@@ -16,6 +16,35 @@ An application to separate audio tracks into isolated stems (vocals, drums, bass
 Ensure you have Python 3.10 - [3.12](https://www.python.org/downloads/release/python-31210/) installed.
 > **Note:** Python 3.13 and newer are currently not supported due to dependency incompatibilities (specifically `diffq` / `diffq-fixed` build errors).
 
+#### Managing Multiple Python Versions (Windows) - Recommended
+If you have a newer version of Python installed (e.g., 3.13+) and need to use Python 3.12 for this project without uninstalling your current version, we recommend using **pyenv-win**.
+
+1. **Install pyenv-win**:
+   Open PowerShell as Administrator and run the following command:
+   ```powershell
+   Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/pyenv-win/pyenv-win/master/pyenv-win/install-pyenv-win.ps1" -OutFile "./install-pyenv-win.ps1"; &"./install-pyenv-win.ps1"
+   ```
+   *Note: You may need to close and reopen PowerShell for the changes to take effect.*
+
+2. **Install Python 3.12**:
+   ```powershell
+   pyenv install 3.12.9
+   ```
+
+3. **Set Local Version**:
+   Navigate to the project directory and set the local Python version. This ensures that `python` commands in this folder use version 3.12.
+   ```powershell
+   cd path\to\your\project
+   pyenv local 3.12.9
+   ```
+
+4. **Verify Installation**:
+   Check that the correct version is active:
+   ```powershell
+   python --version
+   # Output should be: Python 3.12.9
+   ```
+
 ### 2. FFmpeg (Required)
 This application requires FFmpeg to process audio files.
 
