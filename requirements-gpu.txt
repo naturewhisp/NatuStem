@@ -1,0 +1,7 @@
+# Supported Python versions: 3.10 - 3.12 (Python 3.13+ not supported due to diffq-fixed build errors)
+# NOTE: Before installing these, you must install torch with CUDA support:
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+flet
+audio-separator[gpu]
+onnxruntime-gpu

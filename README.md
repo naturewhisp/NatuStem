@@ -62,13 +62,35 @@ This application requires FFmpeg to process audio files.
 ## Installation
 
 1. Clone this repository or download the files.
-2. Install the required Python packages:
+2. Install the default required Python packages (CPU mode):
 
 ```bash
 pip install -r requirements.txt
 ```
 
-> **Note**: This installation uses the CPU version of `audio-separator`. If you have a compatible NVIDIA GPU and want faster processing, you can modify `requirements.txt` to use `audio-separator[gpu]` and install appropriate CUDA libraries.
+### Switching between CPU and GPU Modes (Windows)
+
+This application supports both CPU and GPU (NVIDIA CUDA) processing. By default, the CPU mode is installed.
+To switch between modes, use the provided PowerShell scripts.
+
+#### Enable GPU Mode (Requires NVIDIA GPU)
+This will install PyTorch with CUDA 12.1 support and the GPU-optimized version of `audio-separator`.
+
+1. Open PowerShell in the project directory.
+2. Run the installation script:
+   ```powershell
+   .\install_gpu.ps1
+   ```
+3. Once complete, the application will automatically use your GPU for processing.
+
+#### Revert to CPU Mode
+If you encounter issues or want to switch back to CPU processing:
+
+1. Open PowerShell in the project directory.
+2. Run the revert script:
+   ```powershell
+   .\install_cpu.ps1
+   ```
 
 ## Usage
 
