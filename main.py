@@ -115,7 +115,6 @@ class AudioSeparatorApp:
 
         # Layout
         page.add(
-            self.pick_files_dialog,
             ft.Column(
                 controls=[
                     ft.Text("Audio Stem Separator", size=30, weight=ft.FontWeight.BOLD),
