@@ -13,7 +13,7 @@ An application to separate audio tracks into isolated stems (vocals, drums, bass
 ## Prerequisites
 
 ### 1. Python
-Ensure you have Python 3.10 - 3.12 installed.
+Ensure you have Python 3.10 - [3.12](https://www.python.org/downloads/release/python-31210/) installed.
 > **Note:** Python 3.13 and newer are currently not supported due to dependency incompatibilities (specifically `diffq` / `diffq-fixed` build errors).
 
 ### 2. FFmpeg (Required)
