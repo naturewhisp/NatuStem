@@ -73,8 +73,6 @@ class AudioSeparatorApp:
 
         # UI Components
         self.pick_files_dialog = ft.FilePicker()
-        page.overlay.append(self.pick_files_dialog)
-
         self.file_path_text = ft.Text(value="No file selected", size=16, color=ft.Colors.GREY_400)
         self.select_file_btn = ft.ElevatedButton(
             "Select Audio File",
@@ -117,6 +115,7 @@ class AudioSeparatorApp:
 
         # Layout
         page.add(
+            self.pick_files_dialog,
             ft.Column(
                 controls=[
                     ft.Text("Audio Stem Separator", size=30, weight=ft.FontWeight.BOLD),
