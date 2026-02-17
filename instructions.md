@@ -8,7 +8,7 @@ Applicazione Python desktop (GUI) per separare tracce audio usando AI in locale.
 
 \## Tech Stack
 
-\- Language: Python 3.10+
+\- Language: Python 3.10 - 3.12 (versioni > 3.12 non supportate causa dipendenze)
 
 \- GUI: Flet (Framework moderno)
 
