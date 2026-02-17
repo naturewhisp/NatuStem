@@ -75,7 +75,7 @@ class AudioSeparatorApp:
         self.pick_files_dialog = ft.FilePicker()
         page.overlay.append(self.pick_files_dialog)
 
-        self.file_path_text = ft.Text(value="No file selected", size=16, color=ft.colors.GREY_400)
+        self.file_path_text = ft.Text(value="No file selected", size=16, color=ft.Colors.GREY_400)
         self.select_file_btn = ft.ElevatedButton(
             "Select Audio File",
             icon="audio_file", # Corrected from ft.icons.AUDIO_FILE
@@ -182,12 +182,12 @@ class AudioSeparatorApp:
             file_path = files[0].path
             self.audio_file_path = file_path
             self.file_path_text.value = file_path
-            self.file_path_text.color = ft.colors.WHITE
+            self.file_path_text.color = ft.Colors.WHITE
             self.separate_btn.disabled = False
             self.page.update()
         else:
             self.file_path_text.value = "No file selected"
-            self.file_path_text.color = ft.colors.GREY_400
+            self.file_path_text.color = ft.Colors.GREY_400
             self.separate_btn.disabled = True
             self.page.update()
 
