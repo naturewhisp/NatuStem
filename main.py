@@ -388,11 +388,15 @@ class AudioSeparatorApp:
                 if new_name:
                     new_path = output_dir / new_name
                     # If target exists, overwrite or skip? Overwrite seems standard for "processing this file"
-                    if new_path.exists():
-                        try:
-                            new_path.unlink()
-                        except (OSError, ValueError) as e:
-                            self.append_log(f"Error deleting existing {new_name}: {e}")
+                    # Handle collisions by appending a counter (e.g., vocal_1.wav)
+                    counter = 1
+                    stem = new_path.stem
+                    suffix = new_path.suffix
+                    while new_path.exists():
+                        new_path = output_dir / f"{stem}_{counter}{suffix}"
+                        counter += 1
+
+                    new_name = new_path.name
 
                     try:
                         original_path.rename(new_path)
