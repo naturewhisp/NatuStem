@@ -314,8 +314,8 @@ class AudioSeparatorApp:
         try:
             input_path = Path(self.audio_file_path)
 
-            # Create output directory: same folder as input file / [filename_no_ext]
-            output_dir = input_path.parent / input_path.stem
+            # Create output directory: output folder / [filename_no_ext]
+            output_dir = Path("output") / input_path.stem
             output_dir.mkdir(parents=True, exist_ok=True)
 
             self.append_log(f"Input file: {input_path}")
@@ -407,7 +407,7 @@ class AudioSeparatorApp:
             self.append_log(f"Generated files: {renamed_files}")
 
             # Final status update needs to happen on main thread via update_status or setting value
-            self.update_status(f"Success! Output saved to {output_dir}")
+            self.update_status(f"Success! Output saved to {output_dir.resolve()}")
 
         except Exception as e:
             # Generic error message for the GUI
