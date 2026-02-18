@@ -407,7 +407,7 @@ class AudioSeparatorApp:
             self.append_log(f"Generated files: {renamed_files}")
 
             # Final status update needs to happen on main thread via update_status or setting value
-            self.update_status(f"Success! Output saved to {output_dir}")
+            self.update_status(f"Success! Output saved to {output_dir.resolve()}")
 
         except Exception as e:
             # Generic error message for the GUI

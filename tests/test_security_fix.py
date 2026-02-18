@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 import sys
 import os
+from pathlib import Path
 
 # Add project root to sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -75,6 +76,39 @@ class TestSecurityFix(unittest.TestCase):
         self.assertTrue(str(output_dir_arg).endswith(expected_suffix),
                         f"SECURITY VULNERABILITY: Output directory '{output_dir_arg}' does not end with '{expected_suffix}'. "
                         "It seems to be writing to the input directory instead of a safe 'output' folder.")
+
+    @patch("pathlib.Path.mkdir")
+    @patch("main.Separator")
+    def test_status_message_absolute_path(self, mock_separator_cls, mock_mkdir):
+        # Mock separator instance methods
+        mock_separator_instance = mock_separator_cls.return_value
+        mock_separator_instance.separate.return_value = []
+
+        self.app.run_separation()
+
+        # Verify update_status calls
+        # We expect the last call to update_status to contain the ABSOLUTE path
+        # The code currently uses relative path: output/song
+        # We want: /abs/path/to/output/song
+
+        expected_output_path = Path("output") / "song"
+        expected_abs_path = str(expected_output_path.resolve())
+
+        # Get all calls to update_status
+        calls = self.app.update_status.call_args_list
+        success_call = None
+        for call in calls:
+            arg = call[0][0]
+            if "Success!" in arg:
+                success_call = arg
+                break
+
+        self.assertIsNotNone(success_call, "Success message not found in update_status calls")
+
+        # Assertion: Check if the message contains the absolute path
+        # This fails if the code uses relative path
+        self.assertIn(expected_abs_path, success_call,
+                      f"Status message '{success_call}' does not contain absolute path '{expected_abs_path}'")
 
 if __name__ == '__main__':
     unittest.main()
