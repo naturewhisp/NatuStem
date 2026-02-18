@@ -116,6 +116,10 @@ python main.py
 - **Slow Processing**: Separation is computationally intensive. CPU processing can be slow. Consider using GPU if available.
 - **FFmpeg Error**: If logs show FFmpeg errors, ensure it is correctly installed and added to your PATH.
 
+## Contributing
+
+If you are a developer and want to contribute or understand the project internals, please check our [Developer Guide](CONTRIBUTING.md).
+
 ## License
 
 This project uses `audio-separator` which depends on various open-source models. Please respect the licenses of the models used.
