@@ -6,6 +6,9 @@ import sys
 from pathlib import Path
 import re
 
+# Global constants
+LOG_FILE_NAME = "audio_separator.log"
+
 # Custom Logging Handler to redirect logs to Flet GUI
 class GuiLogHandler(logging.Handler):
     def __init__(self, append_log_callback):
@@ -222,7 +225,7 @@ class AudioSeparatorApp:
 
         # Create File handler for internal logging (includes stack traces for debugging)
         try:
-            file_handler = logging.FileHandler("audio_separator.log", encoding='utf-8')
+            file_handler = logging.FileHandler(LOG_FILE_NAME, encoding='utf-8')
             file_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             file_handler.setFormatter(file_formatter)
             if not any(isinstance(h, logging.FileHandler) for h in logger.handlers):
@@ -406,7 +409,7 @@ class AudioSeparatorApp:
         except Exception as e:
             # Generic error message for the GUI
             self.append_log("Error: An unexpected error occurred during separation.")
-            self.append_log("Check audio_separator.log for detailed error information.")
+            self.append_log(f"Check {LOG_FILE_NAME} for detailed error information.")
             self.update_status("Error during separation.")
             # Detailed error logged to file (suppressed in GUI via GuiLogHandler)
             logging.error(f"Separation failed: {e}", exc_info=True)
