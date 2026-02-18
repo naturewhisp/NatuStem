@@ -14,8 +14,24 @@ class GuiLogHandler(logging.Handler):
 
     def emit(self, record):
         try:
-            msg = self.format(record)
-            self.append_log_callback(msg)
+            # Save original exc_info, stack_info and exc_text to restore them later
+            orig_exc_info = record.exc_info
+            orig_stack_info = record.stack_info
+            orig_exc_text = record.exc_text
+
+            try:
+                # Suppress stack traces for the GUI log handler to prevent information leakage
+                record.exc_info = None
+                record.stack_info = None
+                record.exc_text = None # Clear cached formatted exception
+
+                msg = self.format(record)
+                self.append_log_callback(msg)
+            finally:
+                # Restore original info so other handlers (like file handler) can use it
+                record.exc_info = orig_exc_info
+                record.stack_info = orig_stack_info
+                record.exc_text = orig_exc_text
         except Exception:
             self.handleError(record)
 
@@ -195,14 +211,24 @@ class AudioSeparatorApp:
             self.page.window.destroy()
 
     def setup_logging(self):
-        # Create custom handler
-        self.log_handler = GuiLogHandler(self.append_log)
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%H:%M:%S')
-        self.log_handler.setFormatter(formatter)
-
         # Add handler to root logger
         logger = logging.getLogger()
         logger.setLevel(logging.INFO)
+
+        # Create GUI handler
+        self.log_handler = GuiLogHandler(self.append_log)
+        gui_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%H:%M:%S')
+        self.log_handler.setFormatter(gui_formatter)
+
+        # Create File handler for internal logging (includes stack traces for debugging)
+        try:
+            file_handler = logging.FileHandler("audio_separator.log", encoding='utf-8')
+            file_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            file_handler.setFormatter(file_formatter)
+            if not any(isinstance(h, logging.FileHandler) for h in logger.handlers):
+                logger.addHandler(file_handler)
+        except Exception as e:
+            print(f"Could not initialize file logging: {e}")
 
         # Suppress noisy loggers
         logging.getLogger("flet").setLevel(logging.WARNING)
@@ -378,9 +404,12 @@ class AudioSeparatorApp:
             self.update_status(f"Success! Output saved to {output_dir}")
 
         except Exception as e:
-            self.append_log(f"Error: {e}")
+            # Generic error message for the GUI
+            self.append_log("Error: An unexpected error occurred during separation.")
+            self.append_log("Check audio_separator.log for detailed error information.")
             self.update_status("Error during separation.")
-            logging.error(f"Separation failed", exc_info=True)
+            # Detailed error logged to file (suppressed in GUI via GuiLogHandler)
+            logging.error(f"Separation failed: {e}", exc_info=True)
         finally:
             self.is_separating = False
             self.separate_btn.disabled = False
