@@ -19,3 +19,4 @@ output/*
 .vscode/
 .idea/
 *.code-workspace
+*.log
