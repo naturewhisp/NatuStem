@@ -314,8 +314,8 @@ class AudioSeparatorApp:
         try:
             input_path = Path(self.audio_file_path)
 
-            # Create output directory: same folder as input file / [filename_no_ext]
-            output_dir = input_path.parent / input_path.stem
+            # Create output directory: output folder / [filename_no_ext]
+            output_dir = Path("output") / input_path.stem
             output_dir.mkdir(parents=True, exist_ok=True)
 
             self.append_log(f"Input file: {input_path}")
