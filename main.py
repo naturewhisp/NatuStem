@@ -5,6 +5,7 @@ import threading
 import sys
 from pathlib import Path
 import re
+from collections import deque
 
 # Global constants
 LOG_FILE_NAME = "audio_separator.log"
@@ -89,6 +90,7 @@ class AudioSeparatorApp:
         self.is_separating = False
         self.log_handler = None
         self.stderr_handler = None
+        self.logs = deque(maxlen=1000)
 
     def main(self, page: ft.Page):
         self.page = page
@@ -278,7 +280,8 @@ class AudioSeparatorApp:
 
     def append_log(self, message):
         if self.page:
-            self.log_output.value += message + "\n"
+            self.logs.append(message)
+            self.log_output.value = "\n".join(self.logs) + "\n"
             self.page.update()
 
     def update_status(self, message):
@@ -299,6 +302,7 @@ class AudioSeparatorApp:
         self.progress_bar.visible = True
         self.status_text.value = "Starting separation..."
         self.log_output.value = "" # Clear logs
+        self.logs.clear()
         self.page.update()
 
         # Start separation in a separate thread
