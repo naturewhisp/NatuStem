@@ -39,10 +39,6 @@ class TestCollisionHandling(unittest.TestCase):
         self.app.select_file_btn = MagicMock()
         self.app.separate_btn = MagicMock()
         self.app.progress_bar = MagicMock()
-        self.app.select_file_btn = MagicMock()
-        self.app.model_dropdown = MagicMock()
-        self.app.shifts_slider = MagicMock()
-        self.app.overlap_slider = MagicMock()
         self.app.file_path_text = MagicMock()
 
     def tearDown(self):
