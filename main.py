@@ -9,6 +9,15 @@ import re
 # Global constants
 LOG_FILE_NAME = "audio_separator.log"
 
+# Model configuration
+MODELS = {
+    "htdemucs_ft.yaml": "Fine-tuned Hybrid Transformer. Best overall quality (4 stems: Vocals, Drums, Bass, Other).",
+    "htdemucs.yaml": "Standard Hybrid Transformer. Good balance of speed and quality (4 stems).",
+    "htdemucs_6s.yaml": "6-Stem Hybrid Transformer. Adds Guitar and Piano separation.",
+    "hdemucs_mmi.yaml": "Hybrid Demucs v3. Older architecture, solid performance."
+}
+DEFAULT_MODEL = "htdemucs_ft.yaml"
+
 # Custom Logging Handler to redirect logs to Flet GUI
 class GuiLogHandler(logging.Handler):
     def __init__(self, append_log_callback):
@@ -102,25 +111,15 @@ class AudioSeparatorApp:
         self.model_dropdown = ft.Dropdown(
             label="Model",
             width=300,
-            options=[
-                ft.dropdown.Option("htdemucs_ft.yaml"),
-                ft.dropdown.Option("htdemucs.yaml"),
-                ft.dropdown.Option("htdemucs_6s.yaml"),
-                ft.dropdown.Option("hdemucs_mmi.yaml"),
-            ],
-            value="htdemucs_ft.yaml",
+            options=[ft.dropdown.Option(m) for m in MODELS],
+            value=DEFAULT_MODEL,
             on_select=self.on_model_change
         )
 
-        self.model_descriptions = {
-            "htdemucs_ft.yaml": "Fine-tuned Hybrid Transformer. Best overall quality (4 stems: Vocals, Drums, Bass, Other).",
-            "htdemucs.yaml": "Standard Hybrid Transformer. Good balance of speed and quality (4 stems).",
-            "htdemucs_6s.yaml": "6-Stem Hybrid Transformer. Adds Guitar and Piano separation.",
-            "hdemucs_mmi.yaml": "Hybrid Demucs v3. Older architecture, solid performance."
-        }
+        self.model_descriptions = MODELS
 
         self.model_description_text = ft.Text(
-           value=self.model_descriptions["htdemucs_ft.yaml"],
+           value=self.model_descriptions[DEFAULT_MODEL],
            size=12,
            italic=True,
            color=ft.Colors.GREY_500
