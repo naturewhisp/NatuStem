@@ -327,29 +327,33 @@ class AudioSeparatorApp:
             self.append_log(f"Selected model: {model_name}")
 
             # Initialize Separator if not exists
+            # We use a fixed temporary directory for the persistent instance to avoid issues with
+            # output_dir not updating correctly on cached model instances.
+            temp_output_dir = Path("output") / ".tmp"
+            temp_output_dir.mkdir(parents=True, exist_ok=True)
+
             if self.separator is None:
                 self.append_log("Initializing Separator instance (persistent)...")
                 self.separator = Separator(
                     log_level=logging.INFO,
                     output_format="WAV",
+                    output_dir=str(temp_output_dir),
                     demucs_params={
                         "segment_size": "Default",
                         "segments_enabled": True
                     }
                 )
 
+            # Ensure the separator is pointing to the temp directory
+            # This handles cases where we might have tried to change it before, or just to be safe.
+            self.separator.output_dir = str(temp_output_dir)
+
             # Update parameters for this run
             shifts_val = int(self.shifts_slider.value)
             overlap_val = round(self.overlap_slider.value, 2)
-            self.append_log(f"Updating parameters -> Output: {output_dir}, Shifts: {shifts_val}, Overlap: {overlap_val}")
-
-            # Since output_dir and other params are usually set in __init__, we need to see if we can update them on the instance
-            # or if we need to pass them to separate() or load_model().
-            # Based on common usage of audio-separator, output_dir is an instance attribute.
-            self.separator.output_dir = str(output_dir)
+            self.append_log(f"Updating parameters -> Output: {output_dir} (via temp), Shifts: {shifts_val}, Overlap: {overlap_val}")
 
             # Updating demucs_params. Note: The Separator class might use these during load_model or separate.
-            # Assuming we can update the dict directly or if it's used at separation time.
             if hasattr(self.separator, 'demucs_params'):
                 self.separator.demucs_params["shifts"] = shifts_val
                 self.separator.demucs_params["overlap"] = overlap_val
@@ -365,9 +369,10 @@ class AudioSeparatorApp:
 
             # Separate
             self.append_log(f"Separating {input_path.name}...")
+            # Files will be generated in temp_output_dir
             output_files = self.separator.separate(str(input_path))
 
-            self.append_log(f"Separation complete! Renaming files...")
+            self.append_log(f"Separation complete! Moving and renaming files...")
 
             # Post-processing rename logic
             # Expected outputs from htdemucs usually follow pattern:
@@ -388,40 +393,44 @@ class AudioSeparatorApp:
             }
 
             for file in output_files:
-                original_path = output_dir / file
-                if not original_path.exists():
-                    self.append_log(f"Warning: Expected file {file} not found.")
+                # The file is currently in the temp directory
+                original_temp_path = temp_output_dir / file
+
+                if not original_temp_path.exists():
+                    self.append_log(f"Warning: Expected file {file} not found in temp dir.")
                     continue
 
-                new_name = None
+                target_filename = file # Default to original name
                 for keyword, target in rename_map.items():
                     # Check if keyword is in filename (case-insensitive check might be safer but usually it's Capitalized)
                     if f"({keyword})" in file or f"_{keyword}_" in file or keyword in file:
-                         new_name = target
+                         target_filename = target
                          break
 
-                if new_name:
-                    new_path = output_dir / new_name
-                    # If target exists, overwrite or skip? Overwrite seems standard for "processing this file"
-                    # Handle collisions by appending a counter (e.g., vocal_1.wav)
-                    counter = 1
-                    stem = new_path.stem
-                    suffix = new_path.suffix
-                    while new_path.exists():
-                        new_path = output_dir / f"{stem}_{counter}{suffix}"
-                        counter += 1
-
-                    new_name = new_path.name
-
-                    try:
-                        original_path.rename(new_path)
-                        renamed_files.append(new_name)
-                        self.append_log(f"Renamed {file} -> {new_name}")
-                    except (OSError, ValueError) as e:
-                        self.append_log(f"Error renaming {file}: {e}")
-                else:
+                if target_filename == file:
                     self.append_log(f"Could not match stem for {file}, keeping original name.")
-                    renamed_files.append(file)
+
+                # Determine final path
+                final_path = output_dir / target_filename
+
+                # Handle collisions by appending a counter (e.g., vocal_1.wav)
+                counter = 1
+                stem = final_path.stem
+                suffix = final_path.suffix
+                while final_path.exists():
+                    final_path = output_dir / f"{stem}_{counter}{suffix}"
+                    counter += 1
+
+                target_filename = final_path.name
+                final_path = output_dir / target_filename # Ensure final path matches target_filename
+
+                try:
+                    # Move from temp to final destination
+                    original_temp_path.replace(final_path)
+                    renamed_files.append(target_filename)
+                    self.append_log(f"Saved {target_filename}")
+                except (OSError, ValueError) as e:
+                    self.append_log(f"Error moving {file}: {e}")
 
             self.append_log(f"Generated files: {renamed_files}")
 
