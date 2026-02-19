@@ -20,3 +20,6 @@ output/*
 .idea/
 *.code-workspace
 *.log
+/build
+/dist
+*.spec
