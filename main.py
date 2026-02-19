@@ -91,6 +91,8 @@ class AudioSeparatorApp:
         self.log_handler = None
         self.stderr_handler = None
         self.logs = deque(maxlen=1000)
+        self.separator = None
+        self.loaded_model_name = None
 
     def main(self, page: ft.Page):
         self.page = page
@@ -324,33 +326,46 @@ class AudioSeparatorApp:
             model_name = self.model_dropdown.value
             self.append_log(f"Selected model: {model_name}")
 
-            # Initialize Separator
-            self.append_log("Initializing Separator...")
-            # We pass output_dir to Separator so it saves files there
+            # Initialize Separator if not exists
+            if self.separator is None:
+                self.append_log("Initializing Separator instance (persistent)...")
+                self.separator = Separator(
+                    log_level=logging.INFO,
+                    output_format="WAV",
+                    demucs_params={
+                        "segment_size": "Default",
+                        "segments_enabled": True
+                    }
+                )
+
+            # Update parameters for this run
             shifts_val = int(self.shifts_slider.value)
             overlap_val = round(self.overlap_slider.value, 2)
-            self.append_log(f"Shifts: {shifts_val}, Overlap: {overlap_val}")
+            self.append_log(f"Updating parameters -> Output: {output_dir}, Shifts: {shifts_val}, Overlap: {overlap_val}")
 
-            separator = Separator(
-                log_level=logging.INFO,
-                output_dir=str(output_dir),
-                output_format="WAV",
-                demucs_params={
-                    "segment_size": "Default",
-                    "shifts": shifts_val,
-                    "overlap": overlap_val,
-                    "segments_enabled": True
-                }
-            )
+            # Since output_dir and other params are usually set in __init__, we need to see if we can update them on the instance
+            # or if we need to pass them to separate() or load_model().
+            # Based on common usage of audio-separator, output_dir is an instance attribute.
+            self.separator.output_dir = str(output_dir)
 
-            # Load Model
-            self.append_log(f"Loading model {model_name}...")
-            separator.load_model(model_filename=model_name)
-            self.append_log("Model loaded.")
+            # Updating demucs_params. Note: The Separator class might use these during load_model or separate.
+            # Assuming we can update the dict directly or if it's used at separation time.
+            if hasattr(self.separator, 'demucs_params'):
+                self.separator.demucs_params["shifts"] = shifts_val
+                self.separator.demucs_params["overlap"] = overlap_val
 
-            # Separate (removed invalid custom_output_names arg)
+            # Load Model only if different
+            if self.loaded_model_name != model_name:
+                self.append_log(f"Loading model {model_name}...")
+                self.separator.load_model(model_filename=model_name)
+                self.loaded_model_name = model_name
+                self.append_log("Model loaded.")
+            else:
+                self.append_log(f"Model {model_name} already loaded.")
+
+            # Separate
             self.append_log(f"Separating {input_path.name}...")
-            output_files = separator.separate(str(input_path))
+            output_files = self.separator.separate(str(input_path))
 
             self.append_log(f"Separation complete! Renaming files...")
 
