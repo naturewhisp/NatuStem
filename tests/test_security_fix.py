@@ -68,14 +68,14 @@ class TestSecurityFix(unittest.TestCase):
         # In the vulnerable version, output_dir = input_path.parent / input_path.stem
         # So for input "/sensitive/path/song.mp3", output is "/sensitive/path/song"
 
-        # In the secure version, output_dir should be inside "output/" folder
-        # We expect something that ends with "output/song" (or "output\song" on Windows)
-        expected_suffix = os.path.join("output", "song")
+        # In the secure version, the Separator is initialized with a temporary directory
+        # inside the "output/" folder to avoid caching issues.
+        expected_suffix = os.path.join("output", ".tmp")
 
-        # This assertion should FAIL on the vulnerable code
+        # This assertion should now pass with the current implementation
         self.assertTrue(str(output_dir_arg).endswith(expected_suffix),
                         f"SECURITY VULNERABILITY: Output directory '{output_dir_arg}' does not end with '{expected_suffix}'. "
-                        "It seems to be writing to the input directory instead of a safe 'output' folder.")
+                        "It seems to be writing to an unsafe location.")
 
     @patch("pathlib.Path.mkdir")
     @patch("main.Separator")

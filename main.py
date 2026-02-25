@@ -19,6 +19,18 @@ MODELS = {
 }
 DEFAULT_MODEL = "htdemucs_ft.yaml"
 
+# Stem rename mapping
+# Mapping of keyword in filename -> desired filename
+# Note: htdemucs output names can vary, but usually contain the stem name in parens or appended
+STEM_RENAME_MAP = {
+    "Vocals": "vocal.wav",
+    "Drums": "drums.wav",
+    "Bass": "bass.wav",
+    "Other": "other.wav",
+    "Guitar": "guitar.wav",
+    "Piano": "piano.wav"
+}
+
 # Custom Logging Handler to redirect logs to Flet GUI
 class GuiLogHandler(logging.Handler):
     def __init__(self, append_log_callback):
@@ -381,17 +393,6 @@ class AudioSeparatorApp:
 
             renamed_files = []
 
-            # Mapping of keyword in filename -> desired filename
-            # Note: htdemucs output names can vary, but usually contain the stem name in parens or appended
-            rename_map = {
-                "Vocals": "vocal.wav",
-                "Drums": "drums.wav",
-                "Bass": "bass.wav",
-                "Other": "other.wav",
-                "Guitar": "guitar.wav",
-                "Piano": "piano.wav"
-            }
-
             for file in output_files:
                 # The file is currently in the temp directory
                 original_temp_path = temp_output_dir / file
@@ -401,7 +402,7 @@ class AudioSeparatorApp:
                     continue
 
                 target_filename = file # Default to original name
-                for keyword, target in rename_map.items():
+                for keyword, target in STEM_RENAME_MAP.items():
                     # Check if keyword is in filename (case-insensitive check might be safer but usually it's Capitalized)
                     if f"({keyword})" in file or f"_{keyword}_" in file or keyword in file:
                          target_filename = target

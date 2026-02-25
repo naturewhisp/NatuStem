@@ -60,12 +60,16 @@ class TestCollisionHandling(unittest.TestCase):
             # The separator returns the list of filenames relative to output_dir
             separator_instance.separate.return_value = ["test_song_(Vocals)_htdemucs_ft.wav"]
 
-            # Create the 'output/test_song' directory
+            # Create the 'output/test_song' directory (final destination)
             output_dir = Path("output") / "test_song"
             output_dir.mkdir(parents=True)
 
-            # Create the file that the separator "generated"
-            generated_file = output_dir / "test_song_(Vocals)_htdemucs_ft.wav"
+            # Create the 'output/.tmp' directory where the separator now generates files
+            temp_dir = Path("output") / ".tmp"
+            temp_dir.mkdir(parents=True, exist_ok=True)
+
+            # Create the file that the separator "generated" in the temp directory
+            generated_file = temp_dir / "test_song_(Vocals)_htdemucs_ft.wav"
             generated_file.write_text("new content")
 
             # Create the file that would have been overwritten
